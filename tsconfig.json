@@ -18,9 +18,10 @@
         "name": "next"
       }
     ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+  "paths": {
+  "@/*": ["./src/*"],
+  "@prisma-client/*": ["./src/generated/prisma/*"]
+}
   },
   "include": [
     "next-env.d.ts",

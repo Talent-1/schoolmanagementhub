@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model School {
+  id            String         @id @default(uuid())
+  name          String
+  schoolCode    String         @unique
+  address       String?
+  logoUrl       String?
+  students      Student[]
+  staff         Staff[]
+  classes       Class[]
+  announcements Announcement[]
+  subjects      Subject[]
+  scratchCards  ScratchCard[]
+  smsLogs       SmsLog[]       // Added this relation
+  createdAt     DateTime       @default(now())
+}
+
+model Staff {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          String         @default("TEACHER") // SUPER_ADMIN, ADMIN, TEACHER, BURSAR
+  schoolId      String
+  school        School         @relation(fields: [schoolId], references: [id])
+  assignments   Assignment[]
+  managedClass  Class?         @relation("FormTeacher")
+  announcements Announcement[]
+}
+
+model Class {
+  id            String        @id @default(uuid())
+  name          String
+  section       String
+  isActive      Boolean       @default(true)
+  parentId      String?
+  parentClass   Class?        @relation("SubClasses", fields: [parentId], references: [id])
+  subClasses    Class[]       @relation("SubClasses")
+  schoolId      String
+  school        School        @relation(fields: [schoolId], references: [id])
+  formTeacherId String?       @unique
+  formTeacher   Staff?        @relation("FormTeacher", fields: [formTeacherId], references: [id])
+  students      Student[]
+  assignments   Assignment[]
+  results       Result[]
+  termSummaries TermSummary[]
+}
+
+model Subject {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  section     String       // "JUNIOR" or "SENIOR"
+  department  String?      // "GENERAL", "SCIENCES", "ARTS", etc.
+  isActive    Boolean      @default(true)
+  schoolId    String
+  school      School       @relation(fields: [schoolId], references: [id])
+  assignments Assignment[]
+  results     Result[]
+}
+
+model Assignment {
+  id        String   @id @default(uuid())
+  staffId   String
+  classId   String
+  subjectId String?
+  staff     Staff    @relation(fields: [staffId], references: [id])
+  class     Class    @relation(fields: [classId], references: [id])
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+
+  @@unique([staffId, classId, subjectId])
+}
+
+model Student {
+  id                String        @id @default(uuid())
+  firstName         String
+  lastName          String
+  regNumber         String        @unique
+  password          String
+  schoolId          String
+  parentPhoneNumber String?
+  school            School        @relation(fields: [schoolId], references: [id])
+  classId           String?
+  class             Class?        @relation(fields: [classId], references: [id])
+  results           Result[]
+  scratchCards      ScratchCard[]
+  termSummaries     TermSummary[]
+}
+
+model Result {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId   String
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id])
+  caScore     Float    @default(0)
+  examScore   Float    @default(0)
+  totalScore  Float    @default(0)
+  grade       String?
+  term        String
+  session     String
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([studentId, subjectId, term, session])
+}
+
+model TermSummary {
+  id                  String   @id @default(uuid())
+  studentId           String
+  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId             String
+  class               Class    @relation(fields: [classId], references: [id])
+  term                String
+  session             String
+  totalObtained       Float    @default(0)
+  totalObtainable     Float    @default(0)
+  studentAverage      Float    @default(0)
+  position            Int?
+  formTeacherRemark   String?
+  punctuality         Int?
+  neatness            Int?
+  honesty             Int?
+  attentiveness       Int?
+  sportsParticipation Int?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([studentId, term, session])
+}
+
+model ScratchCard {
+  id           String    @id @default(uuid())
+  schoolId     String
+  school       School    @relation(fields: [schoolId], references: [id])
+  serialNumber String    @unique
+  pin          String    @unique
+  isUsed       Boolean   @default(false)
+  usageCount   Int       @default(0)
+  maxUsage     Int       @default(1)
+  usedById     String?
+  usedBy       Student?  @relation(fields: [usedById], references: [id])
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  target    String
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+  createdAt DateTime @default(now())
+  authorId  String
+  author    Staff    @relation(fields: [authorId], references: [id])
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  quote     String
+  name      String
+  role      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+}
+
+model SmsLog {
+  id        String   @id @default(cuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+  recipient String
+  message   String
+  status    String
+  createdAt DateTime @default(now())
+}

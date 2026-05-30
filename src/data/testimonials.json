@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "quote": "HillCity cut our onboarding time in half — our staff love the clean workflow and dashboards.",
+    "name": "Aisha Mbaye",
+    "role": "Headteacher, Northfield Academy",
+    "avatar": "https://your-project-ref.supabase.co/storage/v1/object/public/testimonials/avatar1.svg"
+  },
+  {
+    "id": 2,
+    "quote": "Reliable, fast, and secure — we rolled out 3 campuses in two weeks.",
+    "name": "Marcus Lee",
+    "role": "IT Manager, BrightFuture Schools",
+    "avatar": "https://your-project-ref.supabase.co/storage/v1/object/public/testimonials/avatar2.svg"
+  },
+  {
+    "id": 3,
+    "quote": "Teachers found the grade and attendance tools intuitive from day one.",
+    "name": "Nicole Ramos",
+    "role": "Academic Director, Lakeside Prep",
+    "avatar": "https://your-project-ref.supabase.co/storage/v1/object/public/testimonials/avatar3.svg"
+  }
+]
