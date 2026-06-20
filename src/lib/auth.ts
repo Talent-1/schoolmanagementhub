@@ -17,7 +17,6 @@ export const authOptions: NextAuthOptions = {
         const identifier = credentials.email.trim();
         const password = credentials.password;
 
-        // 1. Staff/Teacher/Admin Login
         const staff = await prisma.staff.findFirst({
           where: { email: identifier.toLowerCase() },
         });
@@ -28,27 +27,25 @@ export const authOptions: NextAuthOptions = {
             name: staff.name, 
             email: staff.email, 
             role: staff.role, 
+            schoolId: staff.schoolId, // Ensure schoolId is returned
             type: "STAFF" 
           };
         }
 
-        // 2. Student Login
-        // We use findFirst because regNumber is unique, but it's often not the primary key
         const student = await prisma.student.findFirst({
           where: { regNumber: identifier.toUpperCase() },
         });
 
-        // Use bcrypt.compare here to validate the hashed password
         if (student && (await bcrypt.compare(password, student.password))) {
           return { 
             id: student.id, 
             name: `${student.firstName} ${student.lastName}`, 
             email: student.regNumber, 
             role: "STUDENT", 
+            schoolId: student.schoolId, // Ensure schoolId is returned
             type: "STUDENT" 
           };
         }
-
         return null;
       },
     }),
@@ -59,7 +56,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role;
         token.type = (user as any).type;
-        token.email = (user as any).email;
+        token.schoolId = (user as any).schoolId; // Map schoolId to token
       }
       return token;
     },
@@ -68,7 +65,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         (session.user as any).role = token.role;
         (session.user as any).type = token.type;
-        (session.user as any).email = token.email;
+        (session.user as any).schoolId = token.schoolId; // Map schoolId to session
       }
       return session;
     },

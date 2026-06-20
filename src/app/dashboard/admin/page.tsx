@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { BookOpen, Users, GraduationCap, Printer, CreditCard, MessageSquare } from "lucide-react";
+// Added Calendar icon
+import { BookOpen, Users, GraduationCap, Printer, CreditCard, MessageSquare, Calendar } from "lucide-react"; 
 import LogoutButton from "@/components/LogoutButton";
 
 export default async function AdminDashboard() {
@@ -13,7 +14,6 @@ export default async function AdminDashboard() {
     redirect("/login");
   }
 
-  // Fetch admin and school data directly from DB using session email
   const admin = await prisma.staff.findUnique({
     where: { email: session.user.email },
     select: { schoolId: true, school: true }
@@ -40,6 +40,9 @@ export default async function AdminDashboard() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* New Term Management Card */}
+          <DashboardCard href={`/dashboard/admin/terms`} icon={<Calendar size={24} />} title="Academic Terms" description="Set active terms and dates." color="sky" />
+          
           <DashboardCard href={`/dashboard/admin/students?school=${schoolId}`} icon={<GraduationCap size={24} />} title="Student Directory" description="Manage rosters and bulk uploads." color="indigo" />
           <DashboardCard href={`/dashboard/admin/students/report-card?school=${schoolId}`} icon={<Printer size={24} />} title="Report Cards" description="Compile broadsheets and remarks." color="blue" />
           <DashboardCard href={`/dashboard/admin/scratch-cards?school=${schoolId}`} icon={<CreditCard size={24} />} title="Scratch Cards" description="Manage PINs and access." color="amber" />
@@ -59,6 +62,8 @@ function DashboardCard({ href, icon, title, description, color }: any) {
     amber: "bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white border-amber-200",
     green: "bg-green-50 text-green-600 hover:bg-green-600 hover:text-white border-green-200",
     orange: "bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white border-orange-200",
+    violet: "bg-violet-50 text-violet-600 hover:bg-violet-600 hover:text-white border-violet-200",
+    sky: "bg-sky-50 text-sky-600 hover:bg-sky-600 hover:text-white border-sky-200",
   };
   
   return (

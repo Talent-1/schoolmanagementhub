@@ -1,49 +1,64 @@
-// src/app/dashboard/admin/sms/actions.ts
 "use server";
 import { prisma } from "@/lib/prisma";
-import { sendTermiiSms } from "@/lib/sms";
+import { sendSms } from "@/lib/sms";
 
 export async function sendBulkSmsAction(
   target: { classId: string | "ALL" }, 
   messageTemplate: string, 
   schoolId: string
 ) {
-  const school = await prisma.school.findUnique({
-    where: { id: schoolId },
-    select: { name: true }
-  });
-
-  const schoolName = school?.name || "HillCity";
-
-  // 1. Fetch students based on target (Class or ALL)
-  const students = await prisma.student.findMany({
-    where: target.classId === "ALL" ? { schoolId } : { classId: target.classId },
-    include: { parent: true }
-  });
-
-  // 2. Loop and Personalize
-  const logs = await Promise.all(students.map(async (student) => {
-    const phone = student.parent?.phoneNumber;
-    if (!phone) return null;
-
-    // Replace placeholders dynamically
-    const personalizedMessage = messageTemplate
-      .replace("{{studentName}}", student.firstName)
-      .replace("{{studentId}}", student.id);
-      
-    const brandedMessage = `${schoolName}: ${personalizedMessage}`;
-
-    const result = await sendTermiiSms(phone, brandedMessage);
-    
-    return prisma.smsLog.create({
-      data: {
-        schoolId,
-        recipient: phone,
-        message: brandedMessage,
-        status: result.message === "Successfully sent" ? "sent" : "failed"
-      }
+  try {
+    const school = await prisma.school.findUnique({
+      where: { id: schoolId },
+      select: { name: true }
     });
-  }));
 
-  return { success: true, count: logs.filter(Boolean).length };
+    const schoolName = school?.name || "HillCity";
+
+    // 1. Fetch students (No need for 'include' since phone is in the Student model)
+    const students = await prisma.student.findMany({
+      where: target.classId === "ALL" ? { schoolId } : { classId: target.classId },
+    });
+
+    // 2. Loop and Personalize
+    const logs = await Promise.all(students.map(async (student) => {
+      try {
+        const phone = student.parentPhoneNumber;
+        if (!phone) return null;
+
+        // Use global regex for placeholders
+        const personalizedMessage = messageTemplate
+          .replace(/{{studentName}}/g, student.firstName || "Student")
+          .replace(/{{studentId}}/g, student.id || "N/A");
+          
+        const brandedMessage = `${schoolName}: ${personalizedMessage}`;
+
+        // Call the mockable SMS service
+        const result = await sendSms(phone, brandedMessage);
+        
+        // Log to database
+        return await prisma.smsLog.create({
+          data: {
+            schoolId,
+            recipient: phone,
+            message: brandedMessage,
+            status: result.success ? "SENT" : "FAILED"
+          }
+        });
+      } catch (error) {
+        console.error(`Error processing student ${student.id}:`, error);
+        return null;
+      }
+    }));
+
+    return { 
+      success: true, 
+      sentCount: logs.filter(Boolean).length,
+      totalStudents: students.length 
+    };
+
+  } catch (error) {
+    console.error("Bulk SMS Action Failed:", error);
+    throw new Error("Failed to process bulk SMS. Please check server logs.");
+  }
 }

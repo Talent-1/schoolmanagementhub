@@ -18,7 +18,8 @@ model School {
   announcements Announcement[]
   subjects      Subject[]
   scratchCards  ScratchCard[]
-  smsLogs       SmsLog[]       // Added this relation
+  smsLogs       SmsLog[]
+  terms         Term[]
   createdAt     DateTime       @default(now())
 }
 
@@ -27,12 +28,15 @@ model Staff {
   email         String         @unique
   password      String
   name          String
-  role          String         @default("TEACHER") // SUPER_ADMIN, ADMIN, TEACHER, BURSAR
+  role          String         @default("TEACHER")
   schoolId      String
+  notes          Note[]
   school        School         @relation(fields: [schoolId], references: [id])
   assignments   Assignment[]
   managedClass  Class?         @relation("FormTeacher")
   announcements Announcement[]
+
+  @@index([schoolId])
 }
 
 model Class {
@@ -51,18 +55,25 @@ model Class {
   assignments   Assignment[]
   results       Result[]
   termSummaries TermSummary[]
+  notes         Note[]
+
+  @@index([schoolId])
+  @@index([parentId])
 }
 
 model Subject {
-  id          String       @id @default(uuid())
-  name        String       @unique
-  section     String       // "JUNIOR" or "SENIOR"
-  department  String?      // "GENERAL", "SCIENCES", "ARTS", etc.
-  isActive    Boolean      @default(true)
-  schoolId    String
-  school      School       @relation(fields: [schoolId], references: [id])
+  id         String     @id @default(uuid())
+  name       String     @unique
+  section    String
+  department String?
+  isActive   Boolean    @default(true)
+  schoolId   String
+  school     School     @relation(fields: [schoolId], references: [id])
   assignments Assignment[]
-  results     Result[]
+  results    Result[]
+  notes       Note[]
+
+  @@index([schoolId])
 }
 
 model Assignment {
@@ -73,8 +84,12 @@ model Assignment {
   staff     Staff    @relation(fields: [staffId], references: [id])
   class     Class    @relation(fields: [classId], references: [id])
   subject   Subject? @relation(fields: [subjectId], references: [id])
+  results   Result[]
 
   @@unique([staffId, classId, subjectId])
+  @@index([staffId])
+  @@index([classId])
+  @@index([subjectId])
 }
 
 model Student {
@@ -91,66 +106,93 @@ model Student {
   results           Result[]
   scratchCards      ScratchCard[]
   termSummaries     TermSummary[]
+  attendance        Attendance[]
+  accessGrants      AccessGrant[]
+
+  @@index([schoolId])
+  @@index([classId])
 }
 
 model Result {
-  id          String   @id @default(uuid())
-  studentId   String
-  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  subjectId   String
-  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  classId     String
-  class       Class    @relation(fields: [classId], references: [id])
-  caScore     Float    @default(0)
-  examScore   Float    @default(0)
-  totalScore  Float    @default(0)
-  grade       String?
-  term        String
-  session     String
-  isPublished Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subjectId    String
+  subject      Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  classId      String
+  class        Class    @relation(fields: [classId], references: [id])
+  assignmentId String?
+  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
+  caScore      Float    @default(0)
+  examScore    Float    @default(0)
+  totalScore   Float    @default(0)
+  grade        String?
+  term         String
+  session      String
+  isPublished  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  @@unique([studentId, subjectId, term, session])
+  @@unique([studentId, subjectId, term, session]) 
+
+  @@index([studentId])
+  @@index([subjectId])
+  @@index([classId])
+  @@index([session, term])
+}
+
+enum ResultStatus {
+  WITHHELD
+  CANCELLED
+  PUBLISHED
+  PENDING
 }
 
 model TermSummary {
-  id                  String   @id @default(uuid())
-  studentId           String
-  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  classId             String
-  class               Class    @relation(fields: [classId], references: [id])
-  term                String
-  session             String
-  totalObtained       Float    @default(0)
-  totalObtainable     Float    @default(0)
-  studentAverage      Float    @default(0)
-  position            Int?
-  formTeacherRemark   String?
-  punctuality         Int?
-  neatness            Int?
-  honesty             Int?
-  attentiveness       Int?
-  sportsParticipation Int?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                  String   @id @default(uuid())
+  studentId           String
+  student             Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  classId             String
+  class               Class    @relation(fields: [classId], references: [id])
+  term                String
+  session             String
+  status                ResultStatus @default(PENDING)
+  totalObtained       Float    @default(0)
+  totalObtainable     Float    @default(0)
+  studentAverage      Float    @default(0)
+  position            Int?
+  formTeacherRemark   String?
+  punctuality         Int?
+  neatness            Int?
+  honesty             Int?
+  attentiveness       Int?
+  sportsParticipation Int?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  @@unique([studentId, term, session])
+  @@unique([studentId, term, session])
+  @@index([studentId])
+  @@index([classId])
 }
 
+
 model ScratchCard {
-  id           String    @id @default(uuid())
+  id           String   @id @default(uuid())
   schoolId     String
-  school       School    @relation(fields: [schoolId], references: [id])
-  serialNumber String    @unique
-  pin          String    @unique
-  isUsed       Boolean   @default(false)
-  usageCount   Int       @default(0)
-  maxUsage     Int       @default(1)
+  school       School   @relation(fields: [schoolId], references: [id])
+  serialNumber String   @unique
+  pin          String   @unique
+  isUsed       Boolean  @default(false)
+  usageCount   Int      @default(0)
+  maxUsage     Int      @default(1)
   usedById     String?
-  usedBy       Student?  @relation(fields: [usedById], references: [id])
+  usedBy       Student? @relation(fields: [usedById], references: [id])
   usedAt       DateTime?
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime @default(now())
+  accessGrants AccessGrant[]
+
+  @@index([schoolId])
+  @@index([usedById])
 }
 
 model Announcement {
@@ -163,6 +205,9 @@ model Announcement {
   createdAt DateTime @default(now())
   authorId  String
   author    Staff    @relation(fields: [authorId], references: [id])
+
+  @@index([schoolId])
+  @@index([authorId])
 }
 
 model Testimonial {
@@ -181,5 +226,61 @@ model SmsLog {
   recipient String
   message   String
   status    String
+  createdAt DateTime @default(now())
+
+  @@index([schoolId])
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  status    String
+  reason    String?
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, date])
+  @@index([studentId])
+  @@index([date])
+}
+
+model Term {
+  id        String   @id @default(uuid())
+  schoolId  String
+  school    School   @relation(fields: [schoolId], references: [id])
+  name      String
+ session   String   @default("2025/2026")
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+
+  @@index([schoolId])
+}
+
+model AccessGrant {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  term      String
+  session   String
+  cardId    String
+  card      ScratchCard @relation(fields: [cardId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Note {
+  id        String  @id @default(uuid())
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  topic     String
+  content   String  // Store the actual note text here
+  term      String
+  departmentId      String
+  session   String
+  classId      String?
+  class        Class?  @relation(fields: [classId], references: [id])
+  staffId   String
+  staff     Staff @relation(fields: [staffId], references: [id])
+  isAiGenerated Boolean @default(true)
   createdAt DateTime @default(now())
 }

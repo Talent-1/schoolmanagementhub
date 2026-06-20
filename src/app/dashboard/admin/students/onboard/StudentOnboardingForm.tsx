@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { registerStudent } from "./actions";
 import { SubmitButton } from "@/components/ui/SubmitButton";
 
@@ -12,21 +12,12 @@ type ClassWithParent = {
 };
 
 export default function StudentOnboardingForm({ classes, schoolId }: { classes: ClassWithParent[], schoolId: string }) {
-  // Added regNumber to the modal state
   const [modalData, setModalData] = useState<{name: string, pass: string, reg: string} | null>(null);
   const [firstName, setFirstName] = useState("");
-
-  useEffect(() => {
-    if (modalData) {
-      const timer = setTimeout(() => setModalData(null), 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [modalData]);
 
   async function handleAction(formData: FormData) {
     const result = await registerStudent(formData);
     if (result.success) {
-      // Assuming registerStudent action is updated to return regNumber
       setModalData({ 
         name: result.firstName, 
         pass: result.temporaryPassword,
@@ -48,6 +39,12 @@ export default function StudentOnboardingForm({ classes, schoolId }: { classes: 
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1">Last Name</label>
           <input name="lastName" required className="w-full border p-3 rounded-xl" />
+        </div>
+
+        {/* New Field Added Here */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-semibold text-slate-700 mb-1">Parent Phone Number</label>
+          <input type="tel" name="parentPhoneNumber" required placeholder="e.g. 08012345678" className="w-full border p-3 rounded-xl" />
         </div>
 
         <div className="md:col-span-2">
@@ -82,7 +79,7 @@ export default function StudentOnboardingForm({ classes, schoolId }: { classes: 
               <p className="text-sm">Reg Number: <strong className="text-blue-700">{modalData.reg}</strong></p>
               <p className="text-sm">Temp Password: <strong className="text-blue-700">{modalData.pass}</strong></p>
             </div>
-            <p className="text-xs text-slate-400 mt-4 italic">This window closes automatically in 10 seconds.</p>
+            <button onClick={() => setModalData(null)} className="mt-6 w-full bg-slate-900 text-white py-2 rounded-xl">Close</button>
           </div>
         </div>
       )}

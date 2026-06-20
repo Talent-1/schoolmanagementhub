@@ -5,12 +5,20 @@ import { redirect } from "next/navigation";
 
 export default async function StudentDashboard() {
   const session = await getServerSession(authOptions);
-  
-  if (!session || (session.user as any).type !== "STUDENT") {
+
+  // Safely extract the type
+  const userType = (session?.user as any)?.type;
+  const userId = session?.user?.id;
+
+  // If no session OR user is not a student, redirect to login
+  if (!session || userType !== "STUDENT") {
     redirect("/login");
   }
 
-  // Redirect the student to their specific profile page
-  // where the code already exists
-  redirect(`/students/${session.user.id}`);
+  // If for some reason we have a student session but no ID, we can't redirect
+  if (!userId) {
+    redirect("/login");
+  }
+
+  redirect(`/students/${userId}`);
 }

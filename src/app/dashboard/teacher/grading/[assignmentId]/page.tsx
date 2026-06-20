@@ -1,52 +1,87 @@
 import { prisma } from "@/lib/prisma";
-import GradeInput from "./GradeInput"; // We will create this below
+import GradeInput from "./GradeInput";
+import { notFound } from "next/navigation";
 
 export default async function AssignmentGrading({ params }: { params: Promise<{ assignmentId: string }> }) {
   const { assignmentId } = await params;
 
+  // 1. Fetch the active term
+  const activeTerm = await prisma.term.findFirst({ where: { isActive: true } });
+  if (!activeTerm) return <div className="p-10">No active term found.</div>;
+
+  // 2. Fetch the assignment
   const assignment = await prisma.assignment.findUnique({
     where: { id: assignmentId },
-    include: { 
-      subject: true,
-      class: { 
-        include: { 
-          students: { 
-            include: { results: { where: { assignmentId } } } 
-          } 
-        } 
-      } 
+    include: { subject: true, class: true }
+  });
+
+  if (!assignment) notFound();
+
+  // 3. FLEXIBLE FETCH with ParentClass
+  // Including parentClass ensures that if the class structure is hierarchical, 
+  // we have full access to the data structure.
+  const classData = await prisma.class.findUnique({
+    where: { id: assignment.classId },
+    include: {
+      parentClass: true, // Included parentClass as requested
+      students: {
+        include: {
+          results: {
+            where: {
+              subjectId: assignment.subjectId,
+              term: { 
+                startsWith: activeTerm.name.split(" ")[0], 
+                mode: 'insensitive' 
+              }
+            }
+          }
+        },
+        orderBy: { lastName: 'asc' }
+      }
     }
   });
 
-  if (!assignment) return <div>Assignment not found.</div>;
+  if (!classData) return <div className="p-10">Class data not found.</div>;
 
   return (
     <div className="p-10 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">{assignment.subject.name} - Grading</h1>
+      <h1 className="text-2xl font-bold mb-2">{assignment.subject?.name} - Grading</h1>
+      <p className="text-slate-500 mb-6">
+        {/* Displaying parentClass name if it exists */}
+        Class: {classData.parentClass?.name} {classData.name} | Active Term: {activeTerm.name}
+      </p>
+      
       <table className="w-full bg-white rounded-xl shadow-sm border border-slate-200">
         <thead>
-          <tr className="border-b text-left">
+          <tr className="border-b text-left bg-slate-50">
             <th className="p-4">Student Name</th>
-            <th className="p-4">Score</th>
+            <th className="p-4 text-center">Score</th>
+            <th className="p-4 text-center">Action</th>
           </tr>
         </thead>
         <tbody>
-          {assignment.class.students.map((student) => {
-            const existingResult = student.results[0]?.score;
-            return (
-              <tr key={student.id} className="border-b">
-                <td className="p-4">{student.firstName} {student.lastName}</td>
-                <td className="p-4">
-                  {/* We pass the data to this client component */}
-                  <GradeInput 
-                    assignmentId={assignmentId} 
-                    studentId={student.id} 
-                    initialScore={existingResult || 0} 
-                  />
-                </td>
-              </tr>
-            );
-          })}
+          {classData.students.length === 0 ? (
+            <tr><td colSpan={3} className="p-4 text-center">No students found.</td></tr>
+          ) : (
+            classData.students.map((student) => {
+              const existingResult = student.results[0]?.totalScore || 0;
+              return (
+                <tr key={student.id} className="border-b">
+                  <td className="p-4">{student.lastName} {student.firstName}</td>
+                  <td className="p-4 text-center">
+                    <span className="font-mono bg-slate-100 px-3 py-1 rounded">{existingResult}</span>
+                  </td>
+                  <td className="p-4 flex justify-center">
+                    <GradeInput 
+                      assignmentId={assignmentId} 
+                      studentId={student.id} 
+                      initialScore={existingResult} 
+                    />
+                  </td>
+                </tr>
+              );
+            })
+          )}
         </tbody>
       </table>
     </div>

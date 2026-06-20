@@ -10,10 +10,14 @@ export default async function GradingPage() {
 
   if (!session || user?.role !== "TEACHER") redirect("/login");
 
-  // If this fails (like your DB error), it will automatically trigger the error.tsx file
   const assignments = await prisma.assignment.findMany({
     where: { staffId: user.id },
-    include: { class: true, subject: true }
+    include: { 
+      subject: true, 
+      class: {
+        include: { parentClass: true } // Fetches JSS3 + A
+      } 
+    }
   });
 
   return (
@@ -33,7 +37,9 @@ export default async function GradingPage() {
               className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-blue-500 transition-all"
             >
               <h2 className="text-lg font-bold text-slate-800">{assignment.subject.name}</h2>
-              <p className="text-slate-500 mt-1">Class: {assignment.class.name}</p>
+              <p className="text-slate-500 mt-1">
+                Class: {assignment.class.parentClass?.name} {assignment.class.name}
+              </p>
             </Link>
           ))}
         </div>

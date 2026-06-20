@@ -10,6 +10,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@prisma/config": "^7.8.0",
@@ -17,6 +18,8 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-stringify": "^6.7.0",
+    "date-fns": "^4.4.0",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.14.0",
     "next": "^16.2.4",
@@ -26,6 +29,7 @@
     "radix-ui": "^1.4.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-markdown": "^10.1.0",
     "shadcn": "^4.6.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
