@@ -31,6 +31,7 @@ model Staff {
   role          String         @default("TEACHER")
   schoolId      String
   notes          Note[]
+  subscription  Subscription[]
   school        School         @relation(fields: [schoolId], references: [id])
   assignments   Assignment[]
   managedClass  Class?         @relation("FormTeacher")
@@ -282,5 +283,15 @@ model Note {
   staffId   String
   staff     Staff @relation(fields: [staffId], references: [id])
   isAiGenerated Boolean @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  staffId   String   @unique
+  staff     Staff    @relation(fields: [staffId], references: [id])
+  plan      String   // e.g., "FREE", "PREMIUM"
+  status    String   // e.g., "ACTIVE", "EXPIRED"
+  expiresAt DateTime?
   createdAt DateTime @default(now())
 }

@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma"; 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import Link from "next/link"; // 1. Import Link
+import Link from "next/link";
+import { SubscriptionButton } from "@/components/features/notes/SubscriptionButton"; // Import your button
 
 export default async function NoteList() {
   const session = await getServerSession(authOptions);
@@ -15,13 +16,22 @@ export default async function NoteList() {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <h3 className="text-lg font-semibold mb-4">Your Recent Notes</h3>
+      {/* Header section with Flexbox to align button to the right */}
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold">Your Recent Notes</h3>
+        
+        {/* Pass user email and subscription cost here */}
+        <SubscriptionButton 
+          email={session.user.email || ""} 
+          amount={5000} 
+        />
+      </div>
+
       {notes.length === 0 ? (
         <p className="text-gray-500">No notes generated yet.</p>
       ) : (
         <ul className="space-y-3">
           {notes.map((note) => (
-            // 2. Wrap the li in the Link component
             <li key={note.id}>
               <Link 
                 href={`/dashboard/teacher/notes/${note.id}`} 

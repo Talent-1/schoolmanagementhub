@@ -6,7 +6,18 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 /**
- * 1. Fetches data to populate the dynamic dropdowns in the UI
+ * Helper: Checks if the current staff member has an active premium subscription
+ */
+async function isPremiumUser(staffId: string) {
+  const subscription = await prisma.subscription.findUnique({
+    where: { staffId },
+  });
+
+  return subscription?.plan === "PREMIUM" && subscription?.status === "ACTIVE";
+}
+
+/**
+ * 1. Fetches data to populate the dynamic dropdowns
  */
 export async function getFormData() {
   const session = await getServerSession(authOptions);
@@ -37,7 +48,7 @@ export async function getFormData() {
 }
 
 /**
- * 2. Generates and saves the lesson note
+ * 2. Generates and saves the lesson note with Staff-based Subscription check
  */
 export async function generateAndSaveNote(
   subjectId: string,
@@ -48,7 +59,6 @@ export async function generateAndSaveNote(
   deptId?: string
 ) {
   const sessionData = await getServerSession(authOptions);
-  
   if (!sessionData?.user?.id) {
     return { success: false, message: "Unauthorized: Please log in." };
   }
@@ -56,12 +66,20 @@ export async function generateAndSaveNote(
   const staffId = sessionData.user.id;
 
   try {
-    const usageCount = await prisma.note.count({
-      where: { staffId, term, session, isAiGenerated: true }
-    });
+    // Check if the staff member is premium
+    const isPremium = await isPremiumUser(staffId);
 
-    if (usageCount >= 3) {
-      return { success: false, message: "Free limit reached." };
+    if (!isPremium) {
+      const usageCount = await prisma.note.count({
+        where: { staffId, term, session, isAiGenerated: true }
+      });
+
+      if (usageCount >= 3) {
+        return { 
+          success: false, 
+          message: "Free limit reached. Upgrade to Premium for unlimited notes." 
+        };
+      }
     }
 
     const subject = await prisma.subject.findUnique({
