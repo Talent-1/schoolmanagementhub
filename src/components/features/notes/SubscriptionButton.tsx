@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 
 interface Props {
@@ -9,17 +9,13 @@ interface Props {
 }
 
 export const SubscriptionButton = ({ email, amount }: Props) => {
-  // 1. Generate the txRef once after the component mounts to stay "Pure"
-  const [txRef, setTxRef] = useState<string>("");
+  // 1. Initialize state with a function. 
+  // This runs exactly once, immediately, without needing useEffect.
+  const [txRef] = useState(() => `tx_${Date.now()}`);
 
-  useEffect(() => {
-    setTxRef(`tx_${Date.now()}`);
-  }, []);
-
-  // 2. config now depends on the stable txRef
   const config = useMemo(() => ({
     public_key: process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY ?? "",
-    tx_ref: txRef,
+    tx_ref: txRef, // Now guaranteed to be stable
     amount,
     currency: 'NGN',
     payment_options: 'card,ussd,banktransfer',
@@ -42,7 +38,7 @@ export const SubscriptionButton = ({ email, amount }: Props) => {
       callback: (response) => {
         console.log(response);
         alert("Payment successful!");
-        closePaymentModal(); 
+        closePaymentModal();
         window.location.reload();
       },
       onClose: () => {
@@ -54,8 +50,7 @@ export const SubscriptionButton = ({ email, amount }: Props) => {
   return (
     <button 
       onClick={handleClick}
-      disabled={!txRef}
-      className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
+      className="bg-blue-600 text-white px-4 py-2 rounded"
     >
       Upgrade to Premium
     </button>
