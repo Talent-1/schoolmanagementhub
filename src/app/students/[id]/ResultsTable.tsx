@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/prisma";
 
-export async function ResultsTable({ studentId }: { studentId: string }) {
+export async function ResultsTable({ studentId, term, session }: { studentId: string; term?: string; session?: string }) {
   const results = await prisma.result.findMany({
-    where: { studentId },
+    where: {
+      studentId,
+      ...(term ? { term } : {}),
+      ...(session ? { session } : {})
+    },
     orderBy: [{ session: 'desc' }, { term: 'asc' }],
     include: { subject: true }
   });

@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { createTermAction, deleteTermAction, toggleTermActiveAction } from "./actions";
-import { getServerSession } from "next-auth"; 
-import { authOptions } from "@/lib/auth"; 
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export default async function AdminTermsPage() {
-  const session = await getServerSession(authOptions); // Correct call
+  const session = (await getServerSession(authOptions)) as Session | null;
   const schoolId = (session?.user as any)?.schoolId; 
 
   if (!schoolId) return <div>Access Denied: You must be logged in.</div>;
@@ -21,17 +22,17 @@ export default async function AdminTermsPage() {
       <form action={createTermAction} className="bg-white p-6 border rounded-lg mb-8 max-w-lg">
         <input type="hidden" name="schoolId" value={schoolId} />
         <div className="mb-4">
-          <label className="block text-sm font-bold">Term Name</label>
-          <input name="name" required className="w-full p-2 border rounded" placeholder="e.g., 3rd Term 2026" />
+          <label htmlFor="term-name" className="block text-sm font-bold">Term Name</label>
+          <input id="term-name" name="name" required className="w-full p-2 border rounded" placeholder="e.g., 3rd Term 2026" />
         </div>
         <div className="flex gap-4">
           <div className="flex-1">
-            <label className="block text-sm">Start Date</label>
-            <input type="date" name="startDate" required className="w-full p-2 border rounded" />
+            <label htmlFor="start-date" className="block text-sm">Start Date</label>
+            <input id="start-date" type="date" name="startDate" required className="w-full p-2 border rounded" />
           </div>
           <div className="flex-1">
-            <label className="block text-sm">End Date</label>
-            <input type="date" name="endDate" required className="w-full p-2 border rounded" />
+            <label htmlFor="end-date" className="block text-sm">End Date</label>
+            <input id="end-date" type="date" name="endDate" required className="w-full p-2 border rounded" />
           </div>
         </div>
         <button type="submit" className="mt-4 bg-green-600 text-white px-6 py-2 rounded font-bold">Create Term</button>

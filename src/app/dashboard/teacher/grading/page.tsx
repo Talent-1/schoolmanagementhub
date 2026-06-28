@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function GradingPage() {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
   const user = session?.user as any;
 
   if (!session || user?.role !== "TEACHER") redirect("/login");
@@ -36,7 +37,7 @@ export default async function GradingPage() {
               href={`/dashboard/teacher/grading/${assignment.id}`}
               className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-blue-500 transition-all"
             >
-              <h2 className="text-lg font-bold text-slate-800">{assignment.subject.name}</h2>
+              <h2 className="text-lg font-bold text-slate-800">{assignment.subject?.name ?? "Untitled subject"}</h2>
               <p className="text-slate-500 mt-1">
                 Class: {assignment.class.parentClass?.name} {assignment.class.name}
               </p>

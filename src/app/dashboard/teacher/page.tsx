@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { ClipboardList, UserCheck, FileText, Upload, NotebookText } from "lucide-react";
 import Link from "next/link";

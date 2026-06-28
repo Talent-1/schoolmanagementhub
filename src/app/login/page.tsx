@@ -33,7 +33,7 @@ export default function LoginPage() {
         router.push("/dashboard?school=school-01");
         router.refresh(); 
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
       setIsPending(false);
     }

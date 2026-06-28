@@ -26,7 +26,7 @@ export default function SmsComposer({ schoolId, classes }: { schoolId: string; c
       alert(`Success! Sent ${result.sentCount} messages.`);
       // Optional: Clear message after successful send
       setMessage(""); 
-    } catch (error) {
+    } catch {
       alert("Failed to send messages. Please check the logs.");
     } finally {
       setIsSending(false);
@@ -49,11 +49,13 @@ export default function SmsComposer({ schoolId, classes }: { schoolId: string; c
 
       {/* Target Selection */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-slate-700 mb-1">Select Target</label>
-        <select 
+        <label htmlFor="sms-target" className="block text-sm font-medium text-slate-700 mb-1">Select Target</label>
+        <select
+          id="sms-target"
           className="w-full p-2 border border-slate-300 rounded-md"
           onChange={(e) => setClassId(e.target.value)}
           value={classId}
+          aria-label="Select Target"
         >
           <option value="ALL">All Students</option>
           {classes.map((cls) => (

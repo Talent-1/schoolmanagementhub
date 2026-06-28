@@ -13,7 +13,7 @@ export async function toggleSubjectStatus(id: string, activeStatus: boolean) {
     // This clears the cache so the Result Upload page sees the change immediately
     revalidatePath("/dashboard/upload-results");
     return { success: true };
-  } catch (e) {
+  } catch {
     return { error: "Failed to update subject status." };
   }
 }
@@ -29,7 +29,7 @@ export async function addNewSubject(data: { name: string, section: string, depar
     });
     revalidatePath("/dashboard/admin/subjects");
     return { success: true, subject: newSubject };
-  } catch (e) {
+  } catch {
     return { error: "Subject already exists or database error." };
   }
 }

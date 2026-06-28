@@ -1,9 +1,8 @@
-import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -54,9 +53,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.type = (user as any).type;
-        token.schoolId = (user as any).schoolId; // Map schoolId to token
+        token.role = user.role;
+        token.type = user.type;
+        token.schoolId = user.schoolId;
       }
       return token;
     },
@@ -65,7 +64,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         (session.user as any).role = token.role;
         (session.user as any).type = token.type;
-        (session.user as any).schoolId = token.schoolId; // Map schoolId to session
+        (session.user as any).schoolId = token.schoolId;
       }
       return session;
     },

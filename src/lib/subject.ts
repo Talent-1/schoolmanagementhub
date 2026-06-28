@@ -1,4 +1,4 @@
-const NERDC_SUBJECTS = {
+export const NERDC_SUBJECTS = {
   JUNIOR: [
     "Mathematics", "English Studies", "Basic Science", "Basic Technology", 
     "Social Studies", "Civic Education", "Cultural & Creative Arts (CCA)", 

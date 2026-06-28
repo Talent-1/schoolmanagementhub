@@ -1,7 +1,6 @@
 "use client";
 
 import { utils, writeFile } from "xlsx";
-import Link from "next/link";
 import React from "react";
 
 export default function BroadsheetClient({ managedClass, subjects, rankedStudents, termName }: any) {

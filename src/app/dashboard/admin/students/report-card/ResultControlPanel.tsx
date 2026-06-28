@@ -1,7 +1,7 @@
 "use client";
-import { updateStudentResultStatus } from "@/admin/students/computeEngine";
+import { updateStudentResultStatus } from "@/app/dashboard/admin/students/computeEngine";
 
-export default function ResultControlPanel({ summary }) {
+export default function ResultControlPanel({ summary }: { summary: { id: string } }) {
   const handleStatusChange = async (newStatus: any) => {
     await updateStudentResultStatus(summary.id, newStatus);
     alert(`Status updated to ${newStatus}`);

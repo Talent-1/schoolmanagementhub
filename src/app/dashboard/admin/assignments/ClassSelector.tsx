@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function ClassSelector({ 
   parentClasses, 
@@ -19,14 +19,10 @@ export default function ClassSelector({
   const [selectedParent, setSelectedParent] = useState(selectedParentId || "");
   const [selectedChild, setSelectedChild] = useState(searchParams.get("class") || "");
 
-  // Reset child selection when parent changes
-  useEffect(() => {
-    setSelectedChild("");
-  }, [selectedParent]);
-
   const handleParentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const parentId = e.target.value;
     setSelectedParent(parentId);
+    setSelectedChild("");
     // Navigate with parent class selected, no child yet
     router.push(`?school=${schoolId}&parentClass=${parentId}`);
   };

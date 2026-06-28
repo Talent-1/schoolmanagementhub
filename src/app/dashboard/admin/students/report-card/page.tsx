@@ -39,8 +39,8 @@ export default async function ReportCardGeneratorPage({ searchParams }: any) {
       <div className="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200">
         <form method="GET" className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Class Arm</label>
-            <select name="classId" defaultValue={activeClassId} className="w-full p-3 rounded-xl border bg-slate-50">
+            <label htmlFor="class-select" className="block text-xs font-bold uppercase text-slate-500 mb-2">Class Arm</label>
+            <select id="class-select" name="classId" defaultValue={activeClassId} className="w-full p-3 rounded-xl border bg-slate-50" aria-label="Class Arm">
               <option value="">-- Choose Class --</option>
               {classes.map(c => (
                 <option key={c.id} value={c.id}>
@@ -49,17 +49,23 @@ export default async function ReportCardGeneratorPage({ searchParams }: any) {
               ))}
             </select>
           </div>
-          
-          <select name="term" defaultValue={activeTerm} className="p-3 rounded-xl border bg-slate-50">
-            <option value="FIRST">First Term</option>
-            <option value="SECOND">Second Term</option>
-            <option value="THIRD">Third Term</option>
-          </select>
 
-          <select name="session" defaultValue={activeSession} className="p-3 rounded-xl border bg-slate-50">
-            <option value="2025/2026">2025/2026</option>
-            <option value="2026/2027">2026/2027</option>
-          </select>
+          <div>
+            <label htmlFor="term-select" className="block text-xs font-bold uppercase text-slate-500 mb-2">Term</label>
+            <select id="term-select" name="term" defaultValue={activeTerm} className="w-full p-3 rounded-xl border bg-slate-50" aria-label="Term">
+              <option value="FIRST">First Term</option>
+              <option value="SECOND">Second Term</option>
+              <option value="THIRD">Third Term</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="session-select" className="block text-xs font-bold uppercase text-slate-500 mb-2">Session</label>
+            <select id="session-select" name="session" defaultValue={activeSession} className="w-full p-3 rounded-xl border bg-slate-50" aria-label="Session">
+              <option value="2025/2026">2025/2026</option>
+              <option value="2026/2027">2026/2027</option>
+            </select>
+          </div>
 
           <button type="submit" className="bg-slate-900 text-white p-3 rounded-xl font-bold hover:bg-slate-800">
             Fetch Records

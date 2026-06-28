@@ -4,10 +4,10 @@ import { useFormStatus } from "react-dom";
 
 interface SubmitButtonProps {
   text: string;
-  loadingText: string;
+  loadingText?: string;
 }
 
-export function SubmitButton({ text, loadingText }: SubmitButtonProps) {
+export function SubmitButton({ text, loadingText = "Loading..." }: SubmitButtonProps) {
   const { pending } = useFormStatus();
 
   return (

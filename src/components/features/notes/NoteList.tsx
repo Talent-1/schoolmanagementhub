@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma"; 
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import { SubscriptionButton } from "@/components/features/notes/SubscriptionButton"; // Import your button
 
 export default async function NoteList() {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
   
   if (!session?.user?.id) return null;
 

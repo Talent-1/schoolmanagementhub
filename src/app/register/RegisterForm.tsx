@@ -40,13 +40,13 @@ export default function RegisterForm({ schools }: { schools: any[] }) {
         <input name="email" type="email" required placeholder="Email Address" className="w-full border p-2.5 rounded-lg" />
         <input name="password" type="password" required placeholder="Temporary Password" className="w-full border p-2.5 rounded-lg" />
         
-        <select name="schoolId" required className="w-full border p-2.5 rounded-lg bg-white">
+        <select name="schoolId" title="School" required className="w-full border p-2.5 rounded-lg bg-white">
           {schools.map((school) => (
             <option key={school.id} value={school.id}>{school.name}</option>
           ))}
         </select>
 
-        <select name="role" className="w-full border p-2.5 rounded-lg bg-white">
+        <select name="role" title="Role" className="w-full border p-2.5 rounded-lg bg-white">
           <option value="TEACHER">Teacher</option>
           <option value="DEAN">Dean of Studies</option>
           <option value="VP_ACADEMICS">VP Academics</option>

@@ -4,7 +4,8 @@ import { getAttendanceAnalytics } from "@/lib/attendance-analytics";
 import StatCard from "@/components/StatCard";
 import DateSwitcher from "@/components/DateSwitcher";
 import { updateAttendanceAction } from "./actions";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link"; // Added Link import
@@ -14,7 +15,7 @@ export default async function AttendanceDashboard({ searchParams }: { searchPara
   const date = dateParam ? parseISO(dateParam) : new Date();
   const normalizedDate = startOfDay(date);
   
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
   if (!session?.user?.id) redirect("/login");
 
   const managedClass = await prisma.class.findFirst({
@@ -65,7 +66,7 @@ export default async function AttendanceDashboard({ searchParams }: { searchPara
         {managedClass.students.map((student) => (
           <div key={student.id} className="flex gap-4 items-center py-4 border-b">
             <span className="font-bold w-48">{student.lastName} {student.firstName}</span>
-            <select name={`status-${student.id}`} defaultValue={student.attendance[0]?.status || "PRESENT"} className="p-2 border rounded">
+            <select name={`status-${student.id}`} title={`Attendance Status for ${student.firstName} ${student.lastName}`} defaultValue={student.attendance[0]?.status || "PRESENT"} className="p-2 border rounded">
               <option value="PRESENT">Present</option>
               <option value="ABSENT">Absent</option>
               <option value="HOLIDAY">Holiday</option>

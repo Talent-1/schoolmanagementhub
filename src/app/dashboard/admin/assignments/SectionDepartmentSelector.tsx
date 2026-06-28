@@ -1,17 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function SectionDepartmentSelector({
   sections,
   availableDepartments,
-  schoolId,
   selectedSection,
 }: {
   sections: string[];
   availableDepartments: string[];
-  schoolId: string;
   selectedSection?: string;
 }) {
   const router = useRouter();
@@ -19,14 +17,10 @@ export default function SectionDepartmentSelector({
   const [section, setSection] = useState(selectedSection || "");
   const [department, setDepartment] = useState(searchParams.get("department") || "");
 
-  // Reset department when section changes
-  useEffect(() => {
-    setDepartment("");
-  }, [section]);
-
   const handleSectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newSection = e.target.value;
     setSection(newSection);
+    setDepartment("");
 
     const params = new URLSearchParams(searchParams.toString());
     if (newSection) {

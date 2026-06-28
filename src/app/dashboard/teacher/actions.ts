@@ -1,13 +1,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 // Changed 'score' from number to 'grade' as a string
 export async function updateGrade(assignmentId: string, studentId: string, grade: string) {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
   if (!session || (session.user as any)?.role !== "TEACHER") {
     throw new Error("Unauthorized");
   }
@@ -30,10 +31,17 @@ export async function updateGrade(assignmentId: string, studentId: string, grade
   // Convert letter grade to a numeric value for your totalScore field if needed
   const numericScore = parseFloat(grade) || 0;
 
+  if (!assignment.subjectId) throw new Error("Assignment has no subject assigned.");
+
   // 3. Upsert the grade
   await prisma.result.upsert({
-    where: { 
-      assignmentId_studentId: { assignmentId, studentId } 
+    where: {
+      studentId_subjectId_term_session: {
+        studentId,
+        subjectId: assignment.subjectId,
+        term: activeTerm.name,
+        session: activeTerm.session,
+      }
     },
     update: { 
       grade: grade,
@@ -45,10 +53,10 @@ export async function updateGrade(assignmentId: string, studentId: string, grade
       grade: grade,
       totalScore: numericScore,
       // These fields are required by your schema's @@unique and relation constraints:
-      subjectId: assignment.subjectId!,
+      subjectId: assignment.subjectId,
       classId: assignment.classId,
       term: activeTerm.name,
-      session: activeTerm.name
+      session: activeTerm.session
     }
   });
 

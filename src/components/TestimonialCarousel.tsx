@@ -62,7 +62,7 @@ export default function TestimonialCarousel() {
     isPointerDown.current = true;
     startX.current = e.clientX;
   }
-  function onPointerMove(e: React.PointerEvent) {
+  function onPointerMove() {
     if (!isPointerDown.current || startX.current == null) return;
     // no-op during move; logic on up
   }

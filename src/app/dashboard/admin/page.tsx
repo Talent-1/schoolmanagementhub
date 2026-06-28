@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +9,7 @@ import { BookOpen, Users, GraduationCap, Printer, CreditCard, MessageSquare, Cal
 import LogoutButton from "@/components/LogoutButton";
 
 export default async function AdminDashboard() {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
   
   if (!session?.user?.email) {
     redirect("/login");

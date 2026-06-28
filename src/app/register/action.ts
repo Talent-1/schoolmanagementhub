@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 
 
 /** * STAFF REGISTRATION * **/
-export async function registerStaff(prevState: any, formData: FormData) {
+export async function registerStaff(prevState: unknown, formData: FormData) {
 
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
@@ -34,8 +34,8 @@ export async function registerStaff(prevState: any, formData: FormData) {
     // Return a success object instead of redirecting immediately
     return { success: true, message: "Staff registered successfully!" };
     
-  } catch (error: any) {
-    if (error.code === 'P2002') return { success: false, error: "Email already in use." };
+  } catch (error: unknown) {
+    if (typeof error === "object" && error && "code" in error && error.code === "P2002") return { success: false, error: "Email already in use." };
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }
@@ -48,6 +48,7 @@ export async function registerStudent(formData: FormData) {
   const lastName = formData.get("lastName") as string;
   const schoolId = formData.get("schoolId") as string;
   const classId = formData.get("classId") as string;
+  const password = ((formData.get("password") as string | null)?.trim() || "student1234");
 
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
@@ -77,6 +78,7 @@ export async function registerStudent(formData: FormData) {
         lastName,
         regNumber: generatedRegNumber,
         schoolId,
+        password,
         classId: classId !== "" ? classId : null,
       },
     });

@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import crypto from 'crypto';
 
 export async function POST(req: Request) {
   const secretHash = process.env.FLW_SECRET_HASH;

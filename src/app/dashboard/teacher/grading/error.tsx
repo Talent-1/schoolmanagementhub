@@ -1,6 +1,6 @@
 "use client"; // Error boundaries must be client components
 
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+export default function Error({ reset }: { reset: () => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
       <h2 className="text-xl font-bold text-red-600 mb-2">Unable to load data</h2>

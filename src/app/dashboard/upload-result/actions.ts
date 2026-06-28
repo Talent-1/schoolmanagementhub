@@ -77,7 +77,6 @@ export async function uploadExcelResults(formData: FormData) {
     }
 
     // 3. Database Write (Upsert Logic compatible with the new @@unique constraint)
-    let createdCount = 0;
     let updatedCount = 0;
 
     for (const res of results) {

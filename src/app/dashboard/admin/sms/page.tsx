@@ -1,7 +1,7 @@
 // src/app/dashboard/admin/sms/page.tsx
 import { prisma } from "@/lib/prisma";
 import SmsComposer from "@/components/SmsComposer";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 
 export default async function SmsPage() {
   const session = await getServerSession();

@@ -13,7 +13,7 @@ export async function uploadFile(file: File, folder: string = 'uploads') {
   const fileName = `${Math.random().toString(36).substring(7)}.${fileExt}`;
   const filePath = `${folder}/${fileName}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from(BUCKET_NAME)
     .upload(filePath, file);
 

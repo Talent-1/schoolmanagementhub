@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { toast } from 'sonner';
 
 interface LogoUploadProps {
@@ -74,10 +75,11 @@ export function LogoUpload({
       <div className="flex gap-4">
         {preview && (
           <div className="relative w-24 h-24 rounded-lg border border-slate-200 overflow-hidden">
-            <img
+            <Image
               src={preview}
               alt="Logo preview"
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         )}

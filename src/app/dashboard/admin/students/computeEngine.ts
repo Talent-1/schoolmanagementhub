@@ -52,7 +52,9 @@ export async function updateStudentResultStatus(summaryId: string, status: Resul
   try {
     await prisma.termSummary.update({ where: { id: summaryId }, data: { status } });
     return { success: true };
-  } catch (error) { return { success: false, error: "Failed to update status" }; }
+  } catch {
+    return { success: false, error: "Failed to update status" };
+  }
 }
 
 /**
@@ -74,7 +76,7 @@ export async function saveFormTeacherRemark(
 /**
  * 5. SCRATCH CARD: Access Control Logic
  */
-export async function useScratchCard(studentId: string, pin: string, serial: string, term: string, session: string) {
+export async function verifyScratchCard(studentId: string, pin: string, serial: string, term: string, session: string) {
   try {
     const card = await prisma.scratchCard.findUnique({ where: { pin } });
 
@@ -102,7 +104,7 @@ export async function useScratchCard(studentId: string, pin: string, serial: str
     });
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Verification failed." };
   }
 }

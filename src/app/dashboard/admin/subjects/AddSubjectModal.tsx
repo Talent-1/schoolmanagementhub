@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { addNewSubject } from "./actions";
 
 export function AddSubjectModal({ isOpen, onClose, schoolId, onSuccess }: {
@@ -12,8 +11,6 @@ export function AddSubjectModal({ isOpen, onClose, schoolId, onSuccess }: {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-
   if (!isOpen) return null;
 
   async function handleSubmit(formData: FormData) {

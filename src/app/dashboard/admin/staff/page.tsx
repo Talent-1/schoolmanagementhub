@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Mail, ShieldCheck, UserPlus, Settings2 } from "lucide-react";
+import { Mail, ShieldCheck, Settings2 } from "lucide-react";
 import Link from "next/link";
 import AddStaffModal from "./AddStaffModal";
 

@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react";
 import { getFormData, generateAndSaveNote } from "@/app/dashboard/teacher/notes/actions";
 
+type NoteOption = { id: string; name: string | null; department?: string | null; section?: string | null };
+
 export default function NoteGenerator() {
-  const [data, setData] = useState({ subjects: [], classes: [], departments: [] });
+  const [data, setData] = useState<{ subjects: NoteOption[]; classes: NoteOption[]; departments: NoteOption[] }>({ subjects: [], classes: [], departments: [] });
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedClassName, setSelectedClassName] = useState("");
   const [subjectId, setSubjectId] = useState("");
@@ -14,7 +16,7 @@ export default function NoteGenerator() {
 
   useEffect(() => {
     getFormData().then((res) => {
-      if (res.success) setData(res);
+      if (res.success) setData({ subjects: res.subjects, classes: res.classes, departments: res.departments });
     });
   }, []);
 
@@ -60,21 +62,22 @@ export default function NoteGenerator() {
       <div className="mb-4">
         <label className="block text-sm font-medium mb-1 text-gray-700">Class</label>
         <select 
+          title="Class"
           className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-500" 
           onChange={(e) => {
             const id = e.target.value;
             setSelectedClassId(id);
-            const selected = data.classes.find((c: any) => c.id === id);
-            setSelectedClassName((selected as any)?.name || "");
+            const selected = data.classes.find((c) => c.id === id);
+            setSelectedClassName(selected?.name || "");
           }}
         >
           <option value="">Select Class</option>
-          {data.classes.map((c: any) => (
+          {data.classes.map((c) => (
             <option key={c.id} value={c.id}>
               {/* OPTION 1: If you have separate fields: {c.level} - {c.section}
                   OPTION 2: If you only have a name field: {c.name}
               */}
-              {c.name}
+              {c.name ?? "Unnamed"}
             </option>
           ))}
         </select>
@@ -84,10 +87,10 @@ export default function NoteGenerator() {
       {isSss && (
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1 text-gray-700">Department</label>
-          <select className="w-full border p-2 rounded" onChange={(e) => setDeptId(e.target.value)}>
+          <select title="Department" className="w-full border p-2 rounded" onChange={(e) => setDeptId(e.target.value)}>
             <option value="">Select Department</option>
-            {data.departments.map((d: any) => (
-              <option key={d.id} value={d.name}>{d.name}</option>
+            {data.departments.map((d) => (
+              <option key={d.id} value={d.name ?? ""}>{d.name ?? "Unnamed"}</option>
             ))}
           </select>
         </div>
@@ -96,9 +99,9 @@ export default function NoteGenerator() {
       {/* Subject Selector */}
       <div className="mb-4">
         <label className="block text-sm font-medium mb-1 text-gray-700">Subject</label>
-        <select className="w-full border p-2 rounded" onChange={(e) => setSubjectId(e.target.value)}>
+        <select title="Subject" className="w-full border p-2 rounded" onChange={(e) => setSubjectId(e.target.value)}>
           <option value="">Select Subject</option>
-          {data.subjects.map((s: any) => (
+          {data.subjects.map((s) => (
             <option key={s.id} value={s.id}>{s.name}</option>
           ))}
         </select>

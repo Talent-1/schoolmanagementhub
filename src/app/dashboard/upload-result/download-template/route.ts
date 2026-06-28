@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   const rows = [["student_name", "subject_name", "ca_score", "exam_score"]];
   
   for (const s of students) {
-    rows.push([`${s.firstName} ${s.lastName}`, subject.name, 0, 0]);
+    rows.push([`${s.firstName} ${s.lastName}`, subject.name, "0", "0"]);
   }
 
   const workbook = XLSX.utils.book_new();

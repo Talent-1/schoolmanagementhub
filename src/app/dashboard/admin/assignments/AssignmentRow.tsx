@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { searchStaff, updateAssignment, getAllStaff } from "./actions";
-import { Check, Search, User, ChevronDown } from "lucide-react";
+import { Check, Search, ChevronDown } from "lucide-react";
 
 interface Props {
   subject: { id: string; name: string };
@@ -107,7 +107,7 @@ export default function AssignmentRow({ subject, classId, schoolId, assignedStaf
             ) : (
               <div className="p-4 space-y-2">
                 <p className="text-center text-slate-400 text-sm font-medium">
-                  No teachers found matching "{query}"
+                  No teachers found matching &quot;{query}&quot;
                 </p>
                 <button
                   type="button"

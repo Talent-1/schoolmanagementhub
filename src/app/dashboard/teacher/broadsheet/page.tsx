@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import BroadsheetClient from "@/components/BroadsheetClient";
 
 export default async function BroadsheetPage() {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
   if (!session?.user?.id) redirect("/login");
 
   const activeTerm = await prisma.term.findFirst({ where: { isActive: true } });
@@ -38,12 +39,12 @@ export default async function BroadsheetPage() {
 
   // Rank using Standard Competition Ranking
   const sorted = [...studentsWithStats].sort((a, b) => b.avgScore - a.avgScore);
-  const rankedStudents = sorted.map((student, index, array) => {
-    const rank = (index > 0 && student.avgScore === array[index - 1].avgScore) 
-      ? array[index - 1].rank 
-      : index + 1;
-    return { ...student, rank };
-  });
+  const rankedStudents = sorted.reduce<Array<(typeof sorted)[number] & { rank: number }>>((acc, student, index) => {
+    const previous = acc[acc.length - 1];
+    const rank = previous && student.avgScore === previous.avgScore ? previous.rank : index + 1;
+    acc.push({ ...student, rank });
+    return acc;
+  }, []);
 
   const isJunior = managedClass.name.includes("JS") || managedClass.parentClass?.name.includes("JS");
   const section = isJunior ? "JUNIOR" : "SENIOR";

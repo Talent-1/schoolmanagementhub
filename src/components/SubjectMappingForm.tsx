@@ -2,7 +2,9 @@
 import { useState, useMemo } from 'react';
 import { uploadExcelResults } from "@/app/dashboard/upload-result/actions";
 
-export default function SubjectMappingForm({ classes = [], subjects = [] }: { classes?: any[], subjects?: any[] }) {
+type FormOption = { id: string; name: string; parentClass?: { name?: string | null } | null; section?: string | null; department?: string | null };
+
+export default function SubjectMappingForm({ classes = [], subjects = [], departments = [] }: { classes?: FormOption[]; subjects?: FormOption[]; departments?: string[] }) {
   // State for Download Logic
   const [downloadClassId, setDownloadClassId] = useState("");
   const [selectedDept, setSelectedDept] = useState("");
@@ -32,8 +34,14 @@ export default function SubjectMappingForm({ classes = [], subjects = [] }: { cl
 
   const availableDepts = useMemo(() => {
     if (currentSection !== "Senior") return [];
-    return Array.from(new Set(subjects.filter(s => s.section?.toUpperCase().includes("SENIOR")).map(s => s.department).filter(Boolean)));
-  }, [currentSection, subjects]);
+    const fallback = Array.from(new Set(
+      subjects
+        .filter((s) => s.section?.toUpperCase().includes("SENIOR"))
+        .map((s) => s.department)
+        .filter((dept): dept is string => typeof dept === "string" && dept.length > 0)
+    ));
+    return departments.length > 0 ? departments : fallback;
+  }, [currentSection, departments, subjects]);
 
   const filteredSubjects = useMemo(() => {
     if (!currentSection) return [];
@@ -51,17 +59,17 @@ export default function SubjectMappingForm({ classes = [], subjects = [] }: { cl
       <div className="border-b pb-6">
         <h2 className="text-lg font-bold mb-4">1. Download Template</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <select onChange={(e) => { setDownloadClassId(e.target.value); setSelectedDept(""); }} className="p-2 border rounded">
+          <select title="Class" onChange={(e) => { setDownloadClassId(e.target.value); setSelectedDept(""); }} className="p-2 border rounded">
             <option value="">Select Class...</option>
             {classes.map(c => <option key={c.id} value={c.id}>{c.parentClass ? `${c.parentClass.name} (${c.name})` : c.name}</option>)}
           </select>
           {currentSection === "Senior" && (
-            <select onChange={(e) => setSelectedDept(e.target.value)} value={selectedDept} className="p-2 border rounded">
+            <select title="Department" onChange={(e) => setSelectedDept(e.target.value)} value={selectedDept} className="p-2 border rounded">
               <option value="">Select Dept...</option>
               {availableDepts.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           )}
-          <select onChange={(e) => setSelectedSubjectId(e.target.value)} className="p-2 border rounded">
+          <select title="Subject" onChange={(e) => setSelectedSubjectId(e.target.value)} className="p-2 border rounded">
             <option value="">Select Subject...</option>
             {filteredSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -79,7 +87,7 @@ export default function SubjectMappingForm({ classes = [], subjects = [] }: { cl
       }} className="space-y-4">
         <h2 className="text-lg font-bold">2. Upload Filled Template</h2>
         
-        <select name="classId" value={uploadClassId} onChange={(e) => setUploadClassId(e.target.value)} className="w-full p-2 border rounded" required>
+        <select name="classId" title="Class" value={uploadClassId} onChange={(e) => setUploadClassId(e.target.value)} className="w-full p-2 border rounded" required>
           <option value="">Select Class to Upload Results For...</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.parentClass ? `${c.parentClass.name} (${c.name})` : c.name}</option>)}
         </select>
@@ -99,10 +107,10 @@ export default function SubjectMappingForm({ classes = [], subjects = [] }: { cl
             <option value="2nd Term">2nd Term</option>
             <option value="3rd Term">3rd Term</option>
           </select>
-          <input name="session" value={session} onChange={(e) => setSession(e.target.value)} className="p-2 border rounded" required />
+          <input name="session" title="Session" placeholder="Session" value={session} onChange={(e) => setSession(e.target.value)} className="p-2 border rounded" required />
         </div>
 
-        <input type="file" name="file" required className="w-full p-2 border rounded" />
+        <input type="file" name="file" title="Result File" placeholder="Result File" required className="w-full p-2 border rounded" />
         <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded font-bold hover:bg-blue-700">
           Process Upload
         </button>

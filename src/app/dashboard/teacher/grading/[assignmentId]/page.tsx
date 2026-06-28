@@ -20,19 +20,43 @@ export default async function AssignmentGrading({ params }: { params: Promise<{ 
   // 3. FLEXIBLE FETCH with ParentClass
   // Including parentClass ensures that if the class structure is hierarchical, 
   // we have full access to the data structure.
+  if (!assignment.subjectId) return <div className="p-10">Assignment has no subject.</div>;
+
   const classData = await prisma.class.findUnique({
     where: { id: assignment.classId },
-    include: {
-      parentClass: true, // Included parentClass as requested
+    select: {
+      id: true,
+      name: true,
+      section: true,
+      isActive: true,
+      parentId: true,
+      formTeacherId: true,
+      schoolId: true,
+      parentClass: {
+        select: {
+          id: true,
+          name: true,
+          section: true,
+          isActive: true,
+          parentId: true,
+          schoolId: true
+        }
+      },
       students: {
-        include: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
           results: {
             where: {
               subjectId: assignment.subjectId,
-              term: { 
-                startsWith: activeTerm.name.split(" ")[0], 
-                mode: 'insensitive' 
+              term: {
+                startsWith: activeTerm.name.split(" ")[0],
+                mode: 'insensitive'
               }
+            },
+            select: {
+              totalScore: true
             }
           }
         },
@@ -45,7 +69,7 @@ export default async function AssignmentGrading({ params }: { params: Promise<{ 
 
   return (
     <div className="p-10 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-2">{assignment.subject?.name} - Grading</h1>
+      <h1 className="text-2xl font-bold mb-2">{assignment.subject?.name ?? "Untitled subject"} - Grading</h1>
       <p className="text-slate-500 mb-6">
         {/* Displaying parentClass name if it exists */}
         Class: {classData.parentClass?.name} {classData.name} | Active Term: {activeTerm.name}
@@ -75,7 +99,7 @@ export default async function AssignmentGrading({ params }: { params: Promise<{ 
                     <GradeInput 
                       assignmentId={assignmentId} 
                       studentId={student.id} 
-                      initialScore={existingResult} 
+                      initialScore={String(existingResult)}
                     />
                   </td>
                 </tr>

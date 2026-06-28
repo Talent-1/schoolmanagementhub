@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { useScratchCard } from "@/app/dashboard/admin/students/computeEngine";
+import { verifyScratchCard } from "@/app/dashboard/admin/students/computeEngine";
 
 /**
  * ScratchCardForm
@@ -27,7 +27,7 @@ export function ScratchCardForm({
       const serial = formData.get("serial") as string;
       
       // We pass the details to our server-side function
-      return await useScratchCard(studentId, pin, serial, term, session);
+      return await verifyScratchCard(studentId, pin, serial, term, session);
     },
     { success: false, error: "" } // Initial state
   );

@@ -101,7 +101,6 @@ availableDepartments = Array.from(
             <SectionDepartmentSelector
               sections={uniqueSections}
               availableDepartments={availableDepartments}
-              schoolId={schoolId}
               selectedSection={section}
             />
 

@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { generateLessonNote } from "@/lib/gemini";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 /**
@@ -20,7 +21,7 @@ async function isPremiumUser(staffId: string) {
  * 1. Fetches data to populate the dynamic dropdowns
  */
 export async function getFormData() {
-  const session = await getServerSession(authOptions);
+  const session = (await getServerSession(authOptions)) as Session | null;
   if (!session?.user?.id) return { success: false, subjects: [], classes: [], departments: [] };
 
   const staff = await prisma.staff.findUnique({
@@ -58,7 +59,7 @@ export async function generateAndSaveNote(
   classId: string,
   deptId?: string
 ) {
-  const sessionData = await getServerSession(authOptions);
+  const sessionData = (await getServerSession(authOptions)) as Session | null;
   if (!sessionData?.user?.id) {
     return { success: false, message: "Unauthorized: Please log in." };
   }
@@ -99,7 +100,7 @@ export async function generateAndSaveNote(
         session,
         isAiGenerated: true,
         classId,
-        departmentId: deptId || subject?.department || null, 
+        departmentId: deptId || subject?.department || "",
       },
     });
 

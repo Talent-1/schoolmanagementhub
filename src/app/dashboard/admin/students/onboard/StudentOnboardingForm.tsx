@@ -34,11 +34,11 @@ export default function StudentOnboardingForm({ classes, schoolId }: { classes: 
         
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1">First Name</label>
-          <input name="firstName" required onChange={(e) => setFirstName(e.target.value)} className="w-full border p-3 rounded-xl" />
+          <input name="firstName" required title="First Name" placeholder="First Name" onChange={(e) => setFirstName(e.target.value)} className="w-full border p-3 rounded-xl" />
         </div>
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1">Last Name</label>
-          <input name="lastName" required className="w-full border p-3 rounded-xl" />
+          <input name="lastName" required title="Last Name" placeholder="Last Name" className="w-full border p-3 rounded-xl" />
         </div>
 
         {/* New Field Added Here */}
@@ -49,12 +49,12 @@ export default function StudentOnboardingForm({ classes, schoolId }: { classes: 
 
         <div className="md:col-span-2">
           <label className="block text-sm font-semibold text-slate-700 mb-1">Default Password</label>
-          <input name="password" defaultValue={firstName} key={firstName} className="w-full border p-3 rounded-xl bg-slate-50" />
+          <input name="password" defaultValue={firstName} key={firstName} title="Default Password" placeholder="Default Password" className="w-full border p-3 rounded-xl bg-slate-50" />
         </div>
         
         <div className="md:col-span-2">
           <label className="block text-sm font-semibold text-slate-700 mb-1">Class & Arm</label>
-          <select name="classId" required className="w-full border p-3 rounded-xl">
+          <select name="classId" required title="Class & Arm" className="w-full border p-3 rounded-xl">
             <option value="">Select a Class Arm</option>
             {classes.map((c) => (
               <option key={c.id} value={c.id}>
