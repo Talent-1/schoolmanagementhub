@@ -8,10 +8,8 @@ import { prisma } from '@/lib/prisma';
  * Request body: { logoUrl: string }
  * Response: { id, name, logoUrl, ... }
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { schoolId: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ schoolId: string }> }) {
+  const params = await props.params;
   try {
     const { schoolId } = params;
     const { logoUrl } = await request.json();
