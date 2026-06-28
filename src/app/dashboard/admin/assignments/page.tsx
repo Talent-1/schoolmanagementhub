@@ -53,7 +53,9 @@ export default async function AssignmentsPage({
       distinct: ['department'],
       select: { department: true }
     });
-    availableDepartments = Array.from(new Set(depts.map(d => d.department).filter(Boolean)));
+availableDepartments = Array.from(
+  new Set(depts.map(d => d.department).filter((d): d is string => d !== null))
+);
   }
 
   // Fetch subjects based on class, section, and department
