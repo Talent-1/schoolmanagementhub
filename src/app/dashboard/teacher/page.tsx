@@ -7,9 +7,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function TeacherDashboard({ searchParams }: { searchParams: Promise<{ school?: string }> }) {
-  const resolvedParams = await searchParams;
-  const schoolId = resolvedParams.school || "school-01";
-  
   const session = await getServerSession(authOptions);
   const user = session?.user as any;
 
@@ -17,14 +14,18 @@ export default async function TeacherDashboard({ searchParams }: { searchParams:
     redirect("/login");
   }
 
+  // 1. Fetch staff profile and ensure we have their assigned schoolId
   const staff = await prisma.staff.findUnique({
     where: { id: user.id },
     include: { managedClass: true }
   });
 
-  if (!staff) {
-    return <div className="p-10 text-slate-500 font-bold">Staff profile not found.</div>;
+  if (!staff || !staff.schoolId) {
+    return <div className="p-10 text-slate-500 font-bold">Staff profile or school assignment not found.</div>;
   }
+
+  // 2. Use the staff's actual schoolId from the database
+  const schoolId = staff.schoolId;
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-10 font-sans">
@@ -36,32 +37,24 @@ export default async function TeacherDashboard({ searchParams }: { searchParams:
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      
+        {/* All links now dynamically use the validated schoolId */}
         <Link href={`/dashboard/teacher/grading?school=${schoolId}`} className="p-8 bg-white border border-slate-200 rounded-3xl shadow-sm hover:border-blue-400 transition-all group">
           <ClipboardList className="mb-4 text-blue-600" size={32} />
           <h2 className="text-xl font-bold text-slate-800">Gradebook</h2>
         </Link>
-
-       
-        <Link 
-          href={`/dashboard/upload-result?school=${schoolId}`} 
-          className="p-8 bg-white border border-blue-200 rounded-3xl shadow-sm hover:border-blue-500 hover:shadow-md transition-all group"
-        >
+        
+        <Link href={`/dashboard/upload-result?school=${schoolId}`} className="p-8 bg-white border border-blue-200 rounded-3xl shadow-sm hover:border-blue-500 hover:shadow-md transition-all group">
           <Upload className="mb-4 text-blue-600 group-hover:scale-110 transition-transform" size={32} />
           <h2 className="text-xl font-bold text-slate-800">Upload Results</h2>
           <p className="text-sm text-slate-500 mt-1">Bulk upload student scores via Excel.</p>
         </Link>
 
-        <Link
-          href={`/dashboard/teacher/notes?school=${schoolId}`}
-          className="p-8 bg-white border border-yellow-200 rounded-3xl shadow-sm hover:border-yellow-400 transition-all group"
-        >
+        <Link href={`/dashboard/teacher/notes?school=${schoolId}`} className="p-8 bg-white border border-yellow-200 rounded-3xl shadow-sm hover:border-yellow-400 transition-all group">
           <NotebookText className="mb-4 text-yellow-600" size={32} />
           <h2 className="text-xl font-bold text-slate-800">Lesson Notes</h2>
           <p className="text-sm text-slate-500 mt-1">Generate AI-powered notes or view history.</p>
         </Link> 
 
-        {/* Conditional Tiles */}
         {staff.managedClass && (
           <>
             <Link href={`/dashboard/teacher/attendance?school=${schoolId}`} className="p-8 bg-white border border-green-200 rounded-3xl shadow-sm hover:border-green-400 transition-all group">

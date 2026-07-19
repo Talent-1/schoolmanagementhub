@@ -3,9 +3,11 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { ResultStatus } from "@prisma/client";
+import { getServerSession } from "next-auth/next";
 
 /**
  * 1. THE AUTOMATION BRAIN: Rankings & Totals
+ * (Runs automatically when scores are updated)
  */
 export async function updateTermSummary(studentId: string, classId: string, term: string, session: string) {
   const assignedSubjects = await prisma.assignment.findMany({ where: { classId }, distinct: ['subjectId'] });
@@ -27,30 +29,38 @@ export async function updateTermSummary(studentId: string, classId: string, term
     }
   });
 
+  // Re-rank the class
   const classSummaries = await prisma.termSummary.findMany({ where: { classId, term, session }, orderBy: { totalObtained: 'desc' } });
   await prisma.$transaction(classSummaries.map((s, i) => prisma.termSummary.update({ where: { id: s.id }, data: { position: i + 1 } })));
 }
 
 /**
- * 2. ADMINISTRATIVE: Class-Wide Status (Publish/Withhold/Cancel)
+ * 2. ADMINISTRATIVE: Class-Wide Status (Requires Admin Session)
  */
 export async function computeClassArmBroadsheet(classId: string, term: string, session: string, status: ResultStatus) {
+  const sessionUser = await getServerSession();
+  if (!sessionUser || sessionUser.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
   try {
     await prisma.termSummary.updateMany({ where: { classId, term, session }, data: { status } });
     if (status === ResultStatus.PUBLISHED) {
       await prisma.result.updateMany({ where: { classId, term, session }, data: { isPublished: true } });
     }
-    revalidatePath(`/admin/students/report-card`);
+    revalidatePath(`/dashboard/admin/students/report-card`);
     return { success: true };
   } catch (error) { return { success: false, error: String(error) }; }
 }
 
 /**
- * 3. ADMINISTRATIVE: Individual Student Status Control
+ * 3. ADMINISTRATIVE: Individual Student Status Control (Requires Admin Session)
  */
 export async function updateStudentResultStatus(summaryId: string, status: ResultStatus) {
+  const session = await getServerSession();
+  if (!session || session.user?.role !== "ADMIN") throw new Error("Unauthorized");
+
   try {
     await prisma.termSummary.update({ where: { id: summaryId }, data: { status } });
+    revalidatePath(`/dashboard/admin/students/report-card`);
     return { success: true };
   } catch {
     return { success: false, error: "Failed to update status" };

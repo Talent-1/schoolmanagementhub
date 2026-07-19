@@ -63,17 +63,20 @@ model Class {
 }
 
 model Subject {
-  id         String     @id @default(uuid())
-  name       String     @unique
-  section    String
-  department String?
-  isActive   Boolean    @default(true)
-  schoolId   String
-  school     School     @relation(fields: [schoolId], references: [id])
+  id          String       @id @default(uuid())
+  name        String
+  section     String
+  department  String?
+  isActive    Boolean      @default(true)
+  schoolId    String
+  school      School       @relation(fields: [schoolId], references: [id])
   assignments Assignment[]
-  results    Result[]
+  results     Result[]
   notes       Note[]
 
+  // This ensures that "Mathematics" can exist for School A and School B,
+  // but you cannot have two "Mathematics" subjects for the same School A.
+  @@unique([name, schoolId])
   @@index([schoolId])
 }
 
