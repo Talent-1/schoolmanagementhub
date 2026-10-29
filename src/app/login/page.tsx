@@ -19,18 +19,21 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
 
     try {
+      // 1. Attempt sign in
       const result = await signIn("credentials", {
         email: identifier,
         password: password,
-        redirect: false, // Important: prevents automatic redirect
+        redirect: false, 
       });
 
       if (result?.error) {
         setError("Invalid login credentials. Please check your email or registration number.");
         setIsPending(false);
       } else {
-        // Successful login: Redirect to dashboard and refresh to load the session
-        router.push("/dashboard?school=school-01");
+        // 2. Instead of a hardcoded redirect, we push to a neutral path.
+        // Your middleware or the layout can then detect the user's school 
+        // from their session and route them accordingly.
+        router.push("/dashboard"); 
         router.refresh(); 
       }
     } catch {
@@ -39,6 +42,7 @@ export default function LoginPage() {
     }
   }
 
+ 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4 font-sans">
       <form 

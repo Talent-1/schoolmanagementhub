@@ -1,28 +1,71 @@
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import PrintButton from "@/components/PrintButton";
 import ReportCardManager from "@/components/ReportCardManager";
 
-export default async function ReportCardGeneratorPage({ searchParams }: any) {
-  const { classId, term, session } = await searchParams;
+export default async function ReportCardGeneratorPage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ classId?: string; term?: string; session?: string; school?: string }>; 
+}) {
+  // 1. AUTHENTICATION: Only Admins allowed
+ const session = await getServerSession(authOptions);
   
+  // Debug: Print the whole session to your terminal
+  console.log("DEBUG SESSION DATA:", JSON.stringify(session, null, 2));
+
+  // Use a more flexible check for debugging
+  const userRole = session?.user?.role;
+  console.log("Found Role:", userRole);
+
+  if (!session || userRole !== "ADMIN") {
+    return (
+      <div className="p-20 text-center text-red-600 font-bold">
+        Access Denied. Current Role: {userRole || "No Role Found"}
+      </div>
+    );
+  }
+  const { classId, term, session: sessionParam, school: schoolId } = await searchParams;
+  
+  // 2. CONTEXT CHECK
+  if (!schoolId) {
+    return (
+      <div className="p-20 text-center bg-white rounded-3xl border border-red-200 text-red-600">
+        <h2 className="text-xl font-bold">Unauthorized Access</h2>
+        <p>School context is required to generate report cards.</p>
+      </div>
+    );
+  }
+
   const activeClassId = classId ?? "";
   const activeTerm = term ?? "FIRST";
-  const activeSession = session ?? "2025/2026";
+  const activeSession = sessionParam ?? "2025/2026";
 
-  // 1. Fetch classes with parentClass for the dropdown
+  // 3. FETCH CLASSES (Scoped to school)
   const classes = await prisma.class.findMany({
-    where: { isActive: true },
+    where: { 
+      schoolId: schoolId,
+      isActive: true 
+    },
     include: { parentClass: true },
     orderBy: { parentClass: { name: 'asc' } }
   });
 
-  // 2. Fetch students only if a class is selected
+  // 4. FETCH DATASETS (Scoped to school and class)
   const datasets = activeClassId ? await prisma.student.findMany({
-      where: { classId: activeClassId },
+      where: { 
+        classId: activeClassId,
+        schoolId: schoolId
+      },
       include: {
         school: true,
         class: { include: { parentClass: true } },
-        results: { where: { term: activeTerm, session: activeSession }, include: { subject: true } },
+        results: { 
+          where: { term: activeTerm, session: activeSession }, 
+          include: { subject: true } 
+        },
         termSummaries: { where: { term: activeTerm, session: activeSession } }
       }
   }) : [];
@@ -38,9 +81,11 @@ export default async function ReportCardGeneratorPage({ searchParams }: any) {
       {/* FILTER FORM */}
       <div className="bg-white p-6 rounded-3xl shadow-sm mb-6 border border-slate-200">
         <form method="GET" className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <input type="hidden" name="school" value={schoolId} />
+          
           <div>
-            <label htmlFor="class-select" className="block text-xs font-bold uppercase text-slate-500 mb-2">Class Arm</label>
-            <select id="class-select" name="classId" defaultValue={activeClassId} className="w-full p-3 rounded-xl border bg-slate-50" aria-label="Class Arm">
+            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Class Arm</label>
+            <select name="classId" defaultValue={activeClassId} className="w-full p-3 rounded-xl border bg-slate-50">
               <option value="">-- Choose Class --</option>
               {classes.map(c => (
                 <option key={c.id} value={c.id}>
@@ -51,8 +96,8 @@ export default async function ReportCardGeneratorPage({ searchParams }: any) {
           </div>
 
           <div>
-            <label htmlFor="term-select" className="block text-xs font-bold uppercase text-slate-500 mb-2">Term</label>
-            <select id="term-select" name="term" defaultValue={activeTerm} className="w-full p-3 rounded-xl border bg-slate-50" aria-label="Term">
+            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Term</label>
+            <select name="term" defaultValue={activeTerm} className="w-full p-3 rounded-xl border bg-slate-50">
               <option value="FIRST">First Term</option>
               <option value="SECOND">Second Term</option>
               <option value="THIRD">Third Term</option>
@@ -60,8 +105,8 @@ export default async function ReportCardGeneratorPage({ searchParams }: any) {
           </div>
 
           <div>
-            <label htmlFor="session-select" className="block text-xs font-bold uppercase text-slate-500 mb-2">Session</label>
-            <select id="session-select" name="session" defaultValue={activeSession} className="w-full p-3 rounded-xl border bg-slate-50" aria-label="Session">
+            <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Session</label>
+            <select name="session" defaultValue={activeSession} className="w-full p-3 rounded-xl border bg-slate-50">
               <option value="2025/2026">2025/2026</option>
               <option value="2026/2027">2026/2027</option>
             </select>
@@ -73,7 +118,7 @@ export default async function ReportCardGeneratorPage({ searchParams }: any) {
         </form>
       </div>
 
-      {/* RENDER MANAGER */}
+      {/* RENDER MANAGER (Only renders for Admins) */}
       {datasets.length > 0 ? (
         <ReportCardManager 
           datasets={datasets} 

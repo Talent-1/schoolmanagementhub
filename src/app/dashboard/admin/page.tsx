@@ -4,7 +4,6 @@ import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-// Added Calendar icon
 import { BookOpen, Users, GraduationCap, Printer, CreditCard, MessageSquare, Calendar } from "lucide-react"; 
 import LogoutButton from "@/components/LogoutButton";
 
@@ -17,11 +16,16 @@ export default async function AdminDashboard() {
 
   const admin = await prisma.staff.findUnique({
     where: { email: session.user.email },
-    select: { schoolId: true, school: true }
+    select: { schoolId: true, school: { select: { name: true } } }
   });
 
-  const schoolId = admin?.schoolId ?? "school-01";
-  const schoolName = admin?.school?.name ?? "HillCity Management System";
+  // If the admin isn't linked to a school, redirect or show an error
+  if (!admin?.schoolId) {
+    return <div className="p-10 text-red-600 font-bold">Error: No school assignment found for this account.</div>;
+  }
+
+  const schoolId = admin.schoolId;
+  const schoolName = admin.school?.name ?? "School Management Portal";
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 lg:p-10">
@@ -41,15 +45,14 @@ export default async function AdminDashboard() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* New Term Management Card */}
-          <DashboardCard href={`/dashboard/admin/terms`} icon={<Calendar size={24} />} title="Academic Terms" description="Set active terms and dates." color="sky" />
-          
+          <DashboardCard href={`/dashboard/admin/terms?school=${schoolId}`} icon={<Calendar size={24} />} title="Academic Terms" description="Set active terms and dates." color="sky" />
           <DashboardCard href={`/dashboard/admin/students?school=${schoolId}`} icon={<GraduationCap size={24} />} title="Student Directory" description="Manage rosters and bulk uploads." color="indigo" />
           <DashboardCard href={`/dashboard/admin/students/report-card?school=${schoolId}`} icon={<Printer size={24} />} title="Report Cards" description="Compile broadsheets and remarks." color="blue" />
           <DashboardCard href={`/dashboard/admin/scratch-cards?school=${schoolId}`} icon={<CreditCard size={24} />} title="Scratch Cards" description="Manage PINs and access." color="amber" />
           <DashboardCard href={`/dashboard/admin/staff?school=${schoolId}`} icon={<Users size={24} />} title="Staff Records" description="Manage teachers and assignments." color="green" />
           <DashboardCard href={`/dashboard/admin/subjects?school=${schoolId}`} icon={<BookOpen size={24} />} title="Curriculum" description="Configure subjects and departments." color="orange" />
           <DashboardCard href={`/dashboard/admin/sms?school=${schoolId}`} icon={<MessageSquare size={24} />} title="Bulk SMS" description="Send announcements to parents." color="violet" />
+          
         </div>
       </div>
     </div>

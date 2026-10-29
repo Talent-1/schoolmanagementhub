@@ -1,15 +1,29 @@
 import { prisma } from "@/lib/prisma";
 import SubjectMappingForm from "@/components/SubjectMappingForm";
+import { getServerSession } from "next-auth/next";
 
 export default async function UploadResultsPage() {
-  // Added 'include: { parentClass: true }' to fetch class hierarchy
+  const session = await getServerSession();
+  
+  // 1. Get the admin to find their schoolId
+  const admin = await prisma.staff.findFirst({
+    where: { email: session?.user?.email as string },
+    select: { schoolId: true }
+  });
+
+  if (!admin?.schoolId) {
+    return <div className="p-10 text-center">Unauthorized: School context missing.</div>;
+  }
+
+  // 2. Fetch data SCOPED to this schoolId
   const [classes, subjects] = await Promise.all([
     prisma.class.findMany({ 
+      where: { schoolId: admin.schoolId }, // <-- CRITICAL: Scoping
       include: { parentClass: true }, 
       orderBy: { name: 'asc' } 
     }),
     prisma.subject.findMany({ 
-      where: { isActive: true }, 
+      where: { schoolId: admin.schoolId, isActive: true }, // <-- Assuming Subjects are also school-specific
       orderBy: { name: 'asc' } 
     })
   ]);

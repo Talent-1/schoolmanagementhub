@@ -1,14 +1,26 @@
 import { prisma } from "@/lib/prisma";
+import { redirect } from 'next/navigation';
 import AddClassModal from "./AddClassModal";
 import ClassCard from "./ClassCard"; 
 
-export default async function ClassManagementPage() {
-  const schoolId = "school-01"; 
+// 1. Accept searchParams as a prop
+export default async function ClassManagementPage({
+  searchParams,
+}: {
+  searchParams: { school?: string };
+}) {
+  const schoolId = searchParams.school;
 
+  // 2. Redirect to login if no school is provided
+  if (!schoolId) {
+    redirect('/login');
+  }
+
+  // 3. Fetch data dynamically using the validated schoolId
   const mainClasses = await prisma.class.findMany({
     where: { 
-      schoolId,
-      parentId: null // 
+      schoolId: schoolId, // Now uses the ID from the URL
+      parentId: null 
     },
     include: {
       subClasses: {

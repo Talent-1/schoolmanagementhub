@@ -2,13 +2,16 @@
   "name": "hillcity-portal",
   "version": "1.0.0",
   "private": true,
- "scripts": {
-  "dev": "next dev --no-turbo",
-  "build": "next build",
-  "start": "next start",
-  "lint": "eslint",
-  "postinstall": "npx prisma generate"
-},
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "npx prisma generate"
+  },
+  "prisma": {
+    "seed": "npx tsx ./prisma/seed.ts"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.8.0",
